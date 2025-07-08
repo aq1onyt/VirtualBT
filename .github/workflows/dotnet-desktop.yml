@@ -19,6 +19,18 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
+    - name: install Visual Studio workloads needed for UWP and XAML projects
+      shell: pwsh
+      run: |
+        $vsInstallPath = (& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath)
+        Write-Host "VS install path: $vsInstallPath"
+        if (-not $vsInstallPath) {
+          Write-Error "Visual Studio not found!"
+          exit 1
+        }
+        & "$vsInstallPath\Common7\Tools\VsDevCmd.bat" -arch=x64
+        & "$vsInstallPath\Installer\vs_installer.exe" modify --installPath $vsInstallPath --add Microsoft.VisualStudio.Workload.UniversalWindowsPlatform --passive --norestart
+
     - name: build specific project (skip xaml junk)
       run: dotnet build BluetoothLEExplorer/BluetoothLEExplorer/VirtualBT.csproj --configuration Release --no-restore
 
