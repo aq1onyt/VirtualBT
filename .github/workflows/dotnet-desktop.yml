@@ -24,24 +24,35 @@ jobs:
       run: |
         $vsInstallPath = (& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath)
         if (-not $vsInstallPath) {
-          Write-Error "Visual Studio not found!"
+          Write-Error "Visual Studio installation not found!"
           exit 1
         }
-        $installerPath = Join-Path "${env:ProgramFiles(x86)}" "Microsoft Visual Studio\Installer\vs_installer.exe"
+        $installerPath = Join-Path $vsInstallPath "Installer\vs_installer.exe"
         if (-Not (Test-Path $installerPath)) {
           Write-Error "vs_installer.exe not found at $installerPath"
           exit 1
         }
+
+        Write-Host "Installing UWP workload..."
         & $installerPath modify --installPath $vsInstallPath --add Microsoft.VisualStudio.Workload.UniversalWindowsPlatform --passive --norestart
 
-    # optionally install Windows App SDK if needed (uncomment if you want)
-    #- name: install Windows App SDK
-    #  shell: pwsh
-    #  run: |
-    #    $installerUrl = "https://aka.ms/windowsappsdk/1.4.230303001/winappsdk.msixbundle"
-    #    $output = "$env:TEMP\winappsdk.msixbundle"
-    #    Invoke-WebRequest -Uri $installerUrl -OutFile $output
-    #    Add-AppxPackage -Path $output
+    - name: install Windows SDK 10.0 (optional but recommended)
+      shell: pwsh
+      run: |
+        if (-not (Get-Command "winver" -ErrorAction SilentlyContinue)) {
+          Write-Host "Windows SDK might not be installed, installing via Chocolatey..."
+          choco install windows-sdk-10.1 -y
+        } else {
+          Write-Host "Windows SDK is already installed."
+        }
+
+    - name: verify workloads installed
+      shell: pwsh
+      run: |
+        & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath | ForEach-Object {
+          & "$_\Common7\Tools\VsDevCmd.bat" -arch=x64
+          vswhere -products * -requires Microsoft.VisualStudio.Workload.UniversalWindowsPlatform -find
+        }
 
     - name: build specific project (skip xaml junk)
       run: dotnet build BluetoothLEExplorer/BluetoothLEExplorer/VirtualBT.csproj --configuration Release --no-restore
