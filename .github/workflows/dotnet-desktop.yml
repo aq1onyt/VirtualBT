@@ -8,7 +8,6 @@ on:
 
 jobs:
   build:
-
     runs-on: windows-latest
 
     steps:
@@ -20,11 +19,8 @@ jobs:
       with:
         dotnet-version: 8.0.x
 
-    - name: restore dependencies
-      run: dotnet restore BluetoothLEExplorer/VirtualBT.sln
-
-    - name: build solution
-      run: dotnet build BluetoothLEExplorer/VirtualBT.sln --configuration Release --no-restore
+    - name: build specific project (skip xaml junk)
+      run: dotnet build BluetoothLEExplorer/BluetoothLEExplorer.csproj --configuration Release
 
     - name: publish EXE
       run: dotnet publish BluetoothLEExplorer/BluetoothLEExplorer.csproj --configuration Release --output ./publish
