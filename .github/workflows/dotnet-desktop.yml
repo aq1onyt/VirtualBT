@@ -28,33 +28,34 @@ jobs:
           exit 1
         }
         $installerPath = Join-Path $vsInstallPath "Installer\vs_installer.exe"
-        if (-Not (Test-Path $installerPath)) {
+        if (-not (Test-Path $installerPath)) {
           Write-Error "vs_installer.exe not found at $installerPath"
           exit 1
         }
 
         Write-Host "Installing UWP workload..."
-        & $installerPath modify --installPath $vsInstallPath --add Microsoft.VisualStudio.Workload.UniversalWindowsPlatform --passive --norestart
+        & $installerPath modify --installPath $vsInstallPath --add Microsoft.VisualStudio.Workload.UniversalWindowsPlatform --passive --norestart --wait
 
-    - name: install Windows SDK 10.0 (optional but recommended)
+    - name: install Windows SDK 10.1 (optional but recommended)
       shell: pwsh
       run: |
-        if (-not (Get-Command "winver" -ErrorAction SilentlyContinue)) {
-          Write-Host "Windows SDK might not be installed, installing via Chocolatey..."
+        $sdkPath = "C:\Program Files (x86)\Windows Kits\10"
+        if (-not (Test-Path $sdkPath)) {
+          Write-Host "Windows SDK not found, installing via Chocolatey..."
+          choco upgrade chocolatey -y
           choco install windows-sdk-10.1 -y
         } else {
           Write-Host "Windows SDK is already installed."
         }
 
-    - name: verify workloads installed
+    - name: verify UWP workload installed
       shell: pwsh
       run: |
-        & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath | ForEach-Object {
-          & "$_\Common7\Tools\VsDevCmd.bat" -arch=x64
-          vswhere -products * -requires Microsoft.VisualStudio.Workload.UniversalWindowsPlatform -find
-        }
+        $vsInstallPath = (& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -latest -property installationPath)
+        & "${vsInstallPath}\Common7\Tools\VsDevCmd.bat" -arch=x64
+        & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -products * -requires Microsoft.VisualStudio.Workload.UniversalWindowsPlatform -property installationPath
 
-    - name: build specific project (skip xaml junk)
+    - name: build project
       run: dotnet build BluetoothLEExplorer/BluetoothLEExplorer/VirtualBT.csproj --configuration Release --no-restore
 
     - name: publish EXE
