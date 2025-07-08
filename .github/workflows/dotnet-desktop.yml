@@ -28,8 +28,10 @@ jobs:
           Write-Error "Visual Studio not found!"
           exit 1
         }
-        # Run Visual Studio Installer from correct fixed path
-        & "$env:ProgramFiles(x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath $vsInstallPath --add Microsoft.VisualStudio.Workload.UniversalWindowsPlatform --passive --norestart
+        $programFilesX86 = [System.Environment]::GetEnvironmentVariable("ProgramFiles(x86)")
+        $installerPath = Join-Path $programFilesX86 "Microsoft Visual Studio\Installer\vs_installer.exe"
+        Write-Host "Installer path: $installerPath"
+        & $installerPath modify --installPath $vsInstallPath --add Microsoft.VisualStudio.Workload.UniversalWindowsPlatform --passive --norestart
 
     - name: build specific project (skip xaml junk)
       run: dotnet build BluetoothLEExplorer/BluetoothLEExplorer/VirtualBT.csproj --configuration Release --no-restore
