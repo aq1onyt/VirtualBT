@@ -21,10 +21,10 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: restore dependencies
-      run: dotnet restore VirtualBT.sln
+      run: dotnet restore BluetoothLEExplorer/VirtualBT.sln
 
     - name: build solution
-      run: dotnet build VirtualBT.sln --configuration Release --no-restore
+      run: dotnet build BluetoothLEExplorer/VirtualBT.sln --configuration Release --no-restore
 
     - name: publish EXE
       run: dotnet publish BluetoothLEExplorer/BluetoothLEExplorer.csproj --configuration Release --output ./publish
