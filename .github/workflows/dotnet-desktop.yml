@@ -20,10 +20,10 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: build specific project (skip xaml junk)
-      run: dotnet build BluetoothLEExplorer/BluetoothLEExplorer.csproj --configuration Release
+      run: dotnet build VirtualBT/BluetoothLEExplorer/VirtualBT.csproj --configuration Release --no-restore
 
     - name: publish EXE
-      run: dotnet publish BluetoothLEExplorer/BluetoothLEExplorer.csproj --configuration Release --output ./publish
+      run: dotnet publish VirtualBT/BluetoothLEExplorer/VirtualBT.csproj --configuration Release --output ./publish --no-restore
 
     - name: upload EXE artifact
       uses: actions/upload-artifact@v4
